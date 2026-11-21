@@ -317,3 +317,12 @@ select:focus-visible {
   white-space: nowrap;
   border: 0;
 }
+.board-header {
+  margin: 0 0 12px;
+}
+
+.board-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}

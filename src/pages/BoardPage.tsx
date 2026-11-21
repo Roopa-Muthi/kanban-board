@@ -1,10 +1,14 @@
 import { Link, useParams } from "react-router-dom";
-import { useSnapshot } from "../data/useStore";
+import { EditableText } from "../components/EditableText";
+import { BoardView } from "../components/BoardView";
+import { LIMITS } from "../data/model";
+import { useDispatch, useSnapshot } from "../data/useStore";
 import "../board.css";
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const { data } = useSnapshot();
+  const dispatch = useDispatch();
   const board = data.boards.find((b) => b.id === boardId);
 
   return (
@@ -12,13 +16,20 @@ export function BoardPage() {
       <p>
         <Link to="/">← All boards</Link>
       </p>
+
       {board ? (
         <>
-          <h1>{board.name}</h1>
-          <p className="empty">
-            The board view comes back in Step 3. Columns: {board.columns.length}, cards:{" "}
-            {board.columns.reduce((total, c) => total + c.cards.length, 0)}.
-          </p>
+          <div className="board-header">
+            <EditableText
+              value={board.name}
+              maxLength={LIMITS.boardName}
+              editLabel={`Edit name of board ${board.name}`}
+              className="board-title"
+              headingLevel={1}
+              onSave={(name) => dispatch({ type: "board/rename", boardId: board.id, name })}
+            />
+          </div>
+          <BoardView board={board} />
         </>
       ) : (
         <p>Board not found.</p>
