@@ -119,3 +119,18 @@ code {
 body {
   margin: 0;
 }
+.banner {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.banner-warn {
+  background: #ffebe6;
+  color: #bf2600;
+}
+
+.banner-info {
+  background: #deebff;
+  color: #0747a6;
+}

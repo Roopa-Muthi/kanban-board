@@ -1,24 +1,20 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthProvider";
-import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { StorageBanner } from "./components/StorageBanner";
+import { StoreProvider } from "./data/StoreProvider";
 import { BoardPage } from "./pages/BoardPage";
 import { BoardsPage } from "./pages/BoardsPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <StoreProvider>
+      <BrowserRouter>
+        <StorageBanner />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<BoardsPage />} />
-            <Route path="/boards/:boardId" element={<BoardPage />} />
-          </Route>
+          <Route path="/" element={<BoardsPage />} />
+          <Route path="/boards/:boardId" element={<BoardPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </StoreProvider>
   );
 }

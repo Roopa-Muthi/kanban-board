@@ -1,112 +1,77 @@
-import type { BoardDetail, Card, ColumnRecord } from "./types";
+import type { Board, Card, CardChanges, Column } from "./data/model";
 
-export function addColumn(board: BoardDetail, col: ColumnRecord): BoardDetail {
+export function addColumn(board: Board, column: Column): Board {
+  return { ...board, columns: [...board.columns, column] };
+}
+
+export function renameColumn(board: Board, columnId: string, title: string): Board {
   return {
     ...board,
-    columns: [...board.columns, { id: col.id, title: col.title, position: col.position, cards: [] }],
+    columns: board.columns.map((c) => (c.id === columnId ? { ...c, title } : c)),
   };
 }
 
-export function renameColumn(board: BoardDetail, col: ColumnRecord): BoardDetail {
-  return {
-    ...board,
-    columns: board.columns.map((c) => (c.id === col.id ? { ...c, title: col.title } : c)),
-  };
-}
-
-export function removeColumn(board: BoardDetail, columnId: number): BoardDetail {
+export function removeColumn(board: Board, columnId: string): Board {
   return { ...board, columns: board.columns.filter((c) => c.id !== columnId) };
 }
 
-// The server puts new cards at the bottom, so appending matches what a reload would show.
-export function addCard(board: BoardDetail, card: Card): BoardDetail {
+// New cards go to the bottom of their column.
+export function addCard(board: Board, columnId: string, card: Card): Board {
+  if (!board.columns.some((c) => c.id === columnId)) return board;
   return {
     ...board,
     columns: board.columns.map((c) =>
-      c.id === card.column ? { ...c, cards: [...c.cards, card] } : c,
+      c.id === columnId ? { ...c, cards: [...c.cards, card] } : c,
     ),
   };
 }
 
-export function replaceCard(board: BoardDetail, card: Card): BoardDetail {
-  return {
-    ...board,
-    columns: board.columns.map((c) =>
-      c.id === card.column
-        ? { ...c, cards: c.cards.map((x) => (x.id === card.id ? card : x)) }
-        : c,
-    ),
-  };
-}
-
-export function removeCard(board: BoardDetail, cardId: number): BoardDetail {
+export function updateCard(board: Board, cardId: string, changes: CardChanges, now: string): Board {
   return {
     ...board,
     columns: board.columns.map((c) => ({
       ...c,
-      cards: c.cards.filter((x) => x.id !== cardId),
+      cards: c.cards.map((card) =>
+        card.id === cardId
+          ? {
+              ...card,
+              title: changes.title ?? card.title,
+              description: changes.description ?? card.description,
+              dueDate: changes.dueDate === undefined ? card.dueDate : changes.dueDate,
+              updatedAt: now,
+            }
+          : card,
+      ),
     })),
   };
 }
-// Moves a card into a column and orders that column to match orderedIds.
-// Works for same-column and cross-column moves.
+
+export function removeCard(board: Board, cardId: string): Board {
+  return {
+    ...board,
+    columns: board.columns.map((c) => ({ ...c, cards: c.cards.filter((k) => k.id !== cardId) })),
+  };
+}
+
+// Moves a card into a column and orders that column to match orderedIds. Works for same-column
+// and cross-column moves. Unknown cards or columns leave the board untouched (never loses a card).
 export function placeCard(
-  board: BoardDetail,
-  cardId: number,
-  columnId: number,
-  orderedIds: number[],
-): BoardDetail {
+  board: Board,
+  cardId: string,
+  columnId: string,
+  orderedIds: string[],
+): Board {
   const moving = board.columns.flatMap((c) => c.cards).find((c) => c.id === cardId);
-  if (!moving) return board;
-  const placed: Card = { ...moving, column: columnId };
-  const rank = new Map(orderedIds.map((id, i): [number, number] => [id, i]));
-  const rankOf = (id: number) => rank.get(id) ?? Number.MAX_SAFE_INTEGER;
+  if (!moving || !board.columns.some((c) => c.id === columnId)) return board;
+
+  const rank = new Map(orderedIds.map((id, i): [string, number] => [id, i]));
+  const rankOf = (id: string) => rank.get(id) ?? Number.MAX_SAFE_INTEGER;
   return {
     ...board,
     columns: board.columns.map((c) => {
       const others = c.cards.filter((x) => x.id !== cardId);
       if (c.id !== columnId) return { ...c, cards: others };
-      return { ...c, cards: [...others, placed].sort((a, b) => rankOf(a.id) - rankOf(b.id)) };
+      return { ...c, cards: [...others, moving].sort((a, b) => rankOf(a.id) - rankOf(b.id)) };
     }),
-  };
-}
-
-// Copies only the server-owned fields from a move response. It deliberately leaves the
-// card's column and order alone, because a later queued move may already have changed them.
-export function syncCard(board: BoardDetail, server: Card): BoardDetail {
-  return {
-    ...board,
-    columns: board.columns.map((c) => ({
-      ...c,
-      cards: c.cards.map((x) =>
-        x.id === server.id
-          ? { ...x, position: server.position, version: server.version, updated_at: server.updated_at }
-          : x,
-      ),
-    })),
-  };
-}
-// Copies the content fields a PATCH can change, plus the server-owned version and timestamp.
-// Unlike replaceCard it leaves column and position alone, so an edit that finishes while a
-// move is still saving can't pull the card back to its old place.
-export function mergeCardFields(board: BoardDetail, server: Card): BoardDetail {
-  return {
-    ...board,
-    columns: board.columns.map((c) => ({
-      ...c,
-      cards: c.cards.map((x) =>
-        x.id === server.id
-          ? {
-              ...x,
-              title: server.title,
-              description: server.description,
-              due_date: server.due_date,
-              assignee: server.assignee,
-              version: server.version,
-              updated_at: server.updated_at,
-            }
-          : x,
-      ),
-    })),
   };
 }

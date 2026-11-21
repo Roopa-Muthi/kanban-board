@@ -33,3 +33,9 @@ export interface AppData {
   version: typeof SCHEMA_VERSION;
   boards: Board[]; // newest first
 }
+// What the card dialog can change. A field left out stays as it is; dueDate: null clears it.
+export interface CardChanges {
+  title?: string;
+  description?: string;
+  dueDate?: string | null;
+}

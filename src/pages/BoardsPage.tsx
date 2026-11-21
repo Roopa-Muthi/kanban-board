@@ -1,120 +1,77 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { api, formatError } from "../api";
-import { useAuth } from "../auth/useAuth";
-import type { Board, BoardRequest } from "../types";
+import { newId } from "../data/ids";
+import { LIMITS } from "../data/model";
+import type { Board } from "../data/model";
+import { useDispatch, useSnapshot } from "../data/useStore";
 
-type Status = "loading" | "error" | "ready";
+const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+function countCards(board: Board): number {
+  return board.columns.reduce((total, column) => total + column.cards.length, 0);
+}
 
 export function BoardsPage() {
-  const { user, logout } = useAuth();
-  const [boards, setBoards] = useState<Board[]>([]);
-  const [status, setStatus] = useState<Status>("loading");
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { data } = useSnapshot();
+  const dispatch = useDispatch();
   const [name, setName] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setBoards(await api.get<Board[]>("/boards"));
-      setLoadError(null);
-      setStatus("ready");
-    } catch (err) {
-      setLoadError(formatError(err));
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function handleCreate(e: FormEvent<HTMLFormElement>) {
+  function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
-    setCreating(true);
-    setActionError(null);
-    try {
-      const board = await api.post<Board>("/boards", { name: trimmed } satisfies BoardRequest);
-      setBoards((prev) => [board, ...prev]); // the API lists newest first
-      setName("");
-    } catch (err) {
-      setActionError(formatError(err));
-    } finally {
-      setCreating(false);
-    }
+    dispatch({ type: "board/add", id: newId(), name: trimmed, now: new Date().toISOString() });
+    setName("");
   }
 
-  async function handleDelete(board: Board) {
+  function handleDelete(board: Board) {
     if (!window.confirm(`Delete "${board.name}" and everything in it?`)) return;
-    setActionError(null);
-    try {
-      await api.delete<void>(`/boards/${board.id}`);
-      setBoards((prev) => prev.filter((b) => b.id !== board.id));
-    } catch (err) {
-      setActionError(formatError(err));
-    }
+    dispatch({ type: "board/delete", boardId: board.id });
   }
 
   return (
     <main style={{ maxWidth: 720, margin: "2rem auto", padding: "0 1rem" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Your boards</h1>
-        <button onClick={logout}>Log out ({user?.username})</button>
-      </header>
+      <h1>Your boards</h1>
+      <p style={{ color: "#5e6c84", fontSize: "0.9rem" }}>
+        Saved in this browser only. Nothing is sent to a server.
+      </p>
 
       <form onSubmit={handleCreate} style={{ display: "flex", gap: 8, margin: "1rem 0" }}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="New board name"
-          maxLength={200}
+          maxLength={LIMITS.boardName}
           aria-label="New board name"
           style={{ flex: 1 }}
         />
-        <button type="submit" disabled={creating || name.trim() === ""}>
-          {creating ? "Creating…" : "Create board"}
+        <button type="submit" disabled={name.trim() === ""}>
+          Create board
         </button>
       </form>
 
-      {actionError && (
-        <p role="alert" style={{ color: "crimson" }}>
-          {actionError}
-        </p>
-      )}
-
-      {status === "loading" && <p>Loading boards…</p>}
-
-      {status === "error" && (
-        <div role="alert">
-          <p style={{ color: "crimson" }}>{loadError}</p>
-          <button
-            onClick={() => {
-              setStatus("loading");
-              void load();
-            }}
-          >
-            Try again
-          </button>
-        </div>
-      )}
-
-      {status === "ready" && boards.length === 0 && (
+      {data.boards.length === 0 ? (
         <p>You don't have any boards yet. Create your first one above.</p>
-      )}
-
-      {status === "ready" && boards.length > 0 && (
+      ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
-          {boards.map((board) => (
+          {data.boards.map((board) => (
             <li
               key={board.id}
-              style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0" }}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "0.5rem 0",
+              }}
             >
-              <Link to={`/boards/${board.id}`}>{board.name}</Link>
-              <button onClick={() => void handleDelete(board)} aria-label={`Delete board ${board.name}`}>
+              <span>
+                <Link to={`/boards/${board.id}`}>{board.name}</Link>{" "}
+                <span style={{ color: "#5e6c84", fontSize: "0.85rem" }}>
+                  {plural(board.columns.length, "column")} · {plural(countCards(board), "card")}
+                </span>
+              </span>
+              <button onClick={() => handleDelete(board)} aria-label={`Delete board ${board.name}`}>
                 Delete
               </button>
             </li>

@@ -1,7 +1,7 @@
 import { SCHEMA_VERSION } from "./model";
 import type { AppData, Board, Card, Column } from "./model";
 
-const KEY = "kanban.data";
+export const STORAGE_KEY = "kanban.data";          // the declaration
 
 export type LoadStatus = "ok" | "first-run" | "corrupt" | "unavailable";
 
@@ -99,7 +99,7 @@ export function loadData(storage: Storage | null = defaultStorage()): LoadResult
 
   let raw: string | null;
   try {
-    raw = storage.getItem(KEY);
+    raw = storage.getItem(STORAGE_KEY);
   } catch {
     return { data: emptyData(), status: "unavailable" };
   }
@@ -114,7 +114,7 @@ export function loadData(storage: Storage | null = defaultStorage()): LoadResult
 
   // Unreadable: keep a copy so nothing is silently lost, then start clean.
   try {
-    storage.setItem(`${KEY}.corrupt`, raw);
+    storage.setItem(`${STORAGE_KEY}.corrupt`, raw);
   } catch {
     // nothing more we can do
   }
@@ -125,7 +125,7 @@ export function loadData(storage: Storage | null = defaultStorage()): LoadResult
 export function saveData(data: AppData, storage: Storage | null = defaultStorage()): boolean {
   if (storage === null) return false;
   try {
-    storage.setItem(KEY, JSON.stringify(data));
+    storage.setItem(STORAGE_KEY, JSON.stringify(data));
     return true;
   } catch {
     return false;
