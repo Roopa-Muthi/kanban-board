@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +8,7 @@ import { loadData, saveData } from "../data/storage";
 import { createStore } from "../data/store";
 import { makeBoard, makeCard, makeColumn, makeData } from "../test/dataFactories";
 import { BoardPage } from "./BoardPage";
+
 
 const sampleData = () =>
   makeData([
@@ -218,5 +219,152 @@ describe("BoardPage board", () => {
     });
 
     expect(screen.getByText("Board not found.")).toBeInTheDocument();
+  });
+});
+describe("BoardPage keyboard moves", () => {
+  const focusHandle = (title: string) =>
+    screen.getByRole("button", { name: `Reorder ${title}` }).focus();
+
+  const handleNames = (region: HTMLElement) =>
+    within(region)
+      .getAllByRole("button", { name: /^Reorder / })
+      .map((b) => b.getAttribute("aria-label"));
+
+  const storedTitles = (columnIndex: number) =>
+    storedBoard()?.columns[columnIndex]?.cards.map((c) => c.title);
+
+  it("moves a card down within its column and saves it on drop", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+
+    await user.keyboard(" ");
+    expect(screen.getByText(/Picked up Write README, position 1 of 3 in To do/)).toBeInTheDocument();
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByText("Moved to position 2 of 3 in To do.")).toBeInTheDocument();
+    expect(storedTitles(0)).toEqual(["Write README", "Add seed command", "Deploy"]); // not saved yet
+
+    await user.keyboard(" ");
+    expect(handleNames(column("To do"))).toEqual([
+      "Reorder Add seed command",
+      "Reorder Write README",
+      "Reorder Deploy",
+    ]);
+    expect(storedTitles(0)).toEqual(["Add seed command", "Write README", "Deploy"]);
+  });
+
+  it("moves a card to another column, keeps focus on it, and saves it on drop", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowRight}");
+
+    const handle = within(column("Done")).getByRole("button", { name: "Reorder Write README" });
+    expect(handle).toHaveFocus();
+    expect(screen.getByText("Moved to position 1 of 1 in Done.")).toBeInTheDocument();
+    expect(within(column("To do")).queryByText("Write README")).not.toBeInTheDocument();
+
+    await user.keyboard(" ");
+    expect(storedTitles(0)).toEqual(["Add seed command", "Deploy"]);
+    expect(storedTitles(1)).toEqual(["Write README"]);
+  });
+
+  it("cancels with Escape and puts everything back", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowDown}");
+    await user.keyboard("{Escape}");
+
+    expect(handleNames(column("To do"))).toEqual([
+      "Reorder Write README",
+      "Reorder Add seed command",
+      "Reorder Deploy",
+    ]);
+    expect(screen.getByText("Move cancelled.")).toBeInTheDocument();
+    expect(storedTitles(0)).toEqual(["Write README", "Add seed command", "Deploy"]);
+  });
+
+  it("says so when a card can't move any further", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowUp}");
+    expect(screen.getByText("Can't move any further up.")).toBeInTheDocument();
+  });
+
+  it("changes nothing when the card is dropped where it started", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowDown}");
+    await user.keyboard("{ArrowUp}");
+    await user.keyboard(" ");
+
+    expect(screen.getByText(/Nothing changed/)).toBeInTheDocument();
+    expect(storedTitles(0)).toEqual(["Write README", "Add seed command", "Deploy"]);
+  });
+
+  it("cancels the pick-up when the pointer is pressed elsewhere", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowDown}");
+
+    fireEvent.pointerDown(document.body);
+
+    expect(screen.getByText("Move cancelled.")).toBeInTheDocument();
+    expect(handleNames(column("To do"))[0]).toBe("Reorder Write README");
+  });
+
+  it("ignores arrow keys until a card has been picked up", async () => {
+    const { user } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard("{ArrowDown}");
+
+    expect(handleNames(column("To do"))[0]).toBe("Reorder Write README");
+    expect(screen.queryByText(/Moved to/)).not.toBeInTheDocument();
+  });
+
+  it("discards a pick-up when the board changes in another tab, without hiding the new card", async () => {
+    const { user, store } = renderBoard();
+    focusHandle("Write README");
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowDown}");
+    expect(handleNames(column("To do"))[0]).toBe("Reorder Add seed command");
+
+    act(() => {
+      // what another tab would have written: the same board plus one more card
+      saveData(
+        makeData([
+          makeBoard(
+            "b1",
+            [
+              makeColumn(
+                "c1",
+                [
+                  makeCard("k1", { title: "Write README" }),
+                  makeCard("k2", { title: "Add seed command", dueDate: "2000-01-01" }),
+                  makeCard("k3", { title: "Deploy", dueDate: "2999-12-31" }),
+                  makeCard("k9", { title: "From another tab" }),
+                ],
+                "To do",
+              ),
+              makeColumn("c2", [], "Done"),
+            ],
+            "Roadmap",
+          ),
+        ]),
+      );
+      store.reload();
+    });
+
+    expect(within(column("To do")).getByText("From another tab")).toBeInTheDocument();
+    expect(handleNames(column("To do"))).toEqual([
+      "Reorder Write README",
+      "Reorder Add seed command",
+      "Reorder Deploy",
+      "Reorder From another tab",
+    ]);
   });
 });
