@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { StoreContext } from "./context";
+import { createSampleData } from "./sample";
 import { STORAGE_KEY } from "./storage";
 import { createStore } from "./store";
 import type { Store } from "./store";
@@ -11,7 +12,9 @@ interface Props {
 }
 
 export function StoreProvider({ children, store: provided }: Props) {
-  const [store] = useState<Store>(() => provided ?? createStore());
+  const [store] = useState<Store>(
+    () => provided ?? createStore(undefined, { seed: () => createSampleData() }),
+  );
 
   useEffect(() => {
     // Fires only in *other* tabs, when they write to localStorage.

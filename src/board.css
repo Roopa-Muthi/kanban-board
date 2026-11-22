@@ -394,3 +394,50 @@ select:focus-visible {
   white-space: nowrap;
   border: 0;
 }
+.data-tools {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dfe1e6;
+}
+
+.data-tools h2 {
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+
+.data-tools-hint {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #5e6c84;
+}
+
+.data-tools-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border: 1px solid #767676;
+  border-radius: 3px;
+  background: ButtonFace;
+  color: ButtonText;
+  font: inherit;
+  cursor: pointer;
+}
+
+.file-btn:focus-within {
+  outline: 2px solid #0b5fff;
+  outline-offset: 2px;
+}
+
+.danger-btn {
+  color: #c9372c;
+}
+
+.data-ok {
+  color: #006644;
+}

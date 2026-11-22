@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { DataTools } from "../components/DataTools";
 import { newId } from "../data/ids";
 import { LIMITS } from "../data/model";
 import type { Board } from "../data/model";
 import { useDispatch, useSnapshot } from "../data/useStore";
-
-const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? "" : "s"}`;
+import { plural } from "../format";
 
 function countCards(board: Board): number {
   return board.columns.reduce((total, column) => total + column.cards.length, 0);
@@ -78,6 +78,8 @@ export function BoardsPage() {
           ))}
         </ul>
       )}
+
+      <DataTools />
     </main>
   );
 }

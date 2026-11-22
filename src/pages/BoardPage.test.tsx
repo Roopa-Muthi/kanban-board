@@ -368,3 +368,55 @@ describe("BoardPage keyboard moves", () => {
     ]);
   });
 });
+describe("BoardPage card details", () => {
+  const openDetails = (user: ReturnType<typeof userEvent.setup>, title: string) =>
+    user.click(screen.getByRole("button", { name: `Open details for ${title}` }));
+
+  it("opens the details dialog for a card", async () => {
+    const { user } = renderBoard();
+    await openDetails(user, "Write README");
+    const dialog = screen.getByRole("dialog", { name: "Card details" });
+    expect(within(dialog).getByLabelText("Title")).toHaveValue("Write README");
+  });
+
+  it("saves a description and due date and shows them on the card", async () => {
+    const { user } = renderBoard();
+    await openDetails(user, "Write README");
+    await user.type(screen.getByLabelText("Description"), "Add a screenshot.");
+    fireEvent.change(screen.getByLabelText("Due date"), { target: { value: "2998-01-15" } });
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(within(column("To do")).getByText("Add a screenshot.")).toBeInTheDocument();
+    expect(within(column("To do")).getByText(/Due .*2998/)).toBeInTheDocument();
+    expect(storedBoard()?.columns[0]?.cards[0]).toMatchObject({
+      description: "Add a screenshot.",
+      dueDate: "2998-01-15",
+    });
+  });
+
+  it("closes the dialog if the card is deleted in another tab", async () => {
+    const { user, store } = renderBoard();
+    await openDetails(user, "Write README");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    act(() => {
+      // what another tab would have written: the same board without that card
+      saveData(
+        makeData([
+          makeBoard(
+            "b1",
+            [
+              makeColumn("c1", [makeCard("k2", { title: "Add seed command" })], "To do"),
+              makeColumn("c2", [], "Done"),
+            ],
+            "Roadmap",
+          ),
+        ]),
+      );
+      store.reload();
+    });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});

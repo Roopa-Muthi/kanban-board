@@ -12,12 +12,21 @@ interface Props {
   card: Card;
   grabbed: boolean;
   onRename: (title: string) => void;
+  onOpen: () => void;
   onDelete: () => void;
   onHandleKeyDown: (e: KeyboardEvent<HTMLButtonElement>) => void;
   onHandleBlur: (e: FocusEvent<HTMLButtonElement>) => void;
 }
 
-export function CardItem({ card, grabbed, onRename, onDelete, onHandleKeyDown, onHandleBlur }: Props) {
+export function CardItem({
+  card,
+  grabbed,
+  onRename,
+  onOpen,
+  onDelete,
+  onHandleKeyDown,
+  onHandleBlur,
+}: Props) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: cardKey(card.id) });
 
@@ -80,6 +89,14 @@ export function CardItem({ card, grabbed, onRename, onDelete, onHandleKeyDown, o
         </p>
       )}
       <div className="card-actions">
+        <button
+          type="button"
+          className="link-btn"
+          onClick={onOpen}
+          aria-label={`Open details for ${card.title}`}
+        >
+          Details
+        </button>
         <button
           type="button"
           className="link-btn danger"

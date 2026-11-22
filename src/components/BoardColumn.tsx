@@ -15,6 +15,7 @@ interface Props {
   onDeleteColumn: (column: Column) => void;
   onAddCard: (columnId: string, title: string) => void;
   onRenameCard: (cardId: string, title: string) => void;
+  onOpenCard: (card: Card) => void;
   onDeleteCard: (card: Card) => void;
   onHandleKeyDown: (card: Card, e: KeyboardEvent<HTMLButtonElement>) => void;
   onHandleBlur: (card: Card, e: FocusEvent<HTMLButtonElement>) => void;
@@ -27,6 +28,7 @@ export function BoardColumn({
   onDeleteColumn,
   onAddCard,
   onRenameCard,
+  onOpenCard,
   onDeleteCard,
   onHandleKeyDown,
   onHandleBlur,
@@ -70,6 +72,7 @@ export function BoardColumn({
                 card={card}
                 grabbed={card.id === grabbedCardId}
                 onRename={(title) => onRenameCard(card.id, title)}
+                onOpen={() => onOpenCard(card)}
                 onDelete={() => onDeleteCard(card)}
                 onHandleKeyDown={(e) => onHandleKeyDown(card, e)}
                 onHandleBlur={(e) => onHandleBlur(card, e)}

@@ -21,7 +21,7 @@ import type {
 } from "@dnd-kit/core";
 import { newId } from "../data/ids";
 import { LIMITS } from "../data/model";
-import type { Board, Card, Column } from "../data/model";
+import type { Board, Card, CardChanges, Column } from "../data/model";
 import { useDispatch } from "../data/useStore";
 import {
   buildLayout,
@@ -38,6 +38,7 @@ import type { Layout, Step } from "../dnd";
 import { AddForm } from "./AddForm";
 import { BoardColumn } from "./BoardColumn";
 import { CardPreview } from "./CardPreview";
+import { CardModal } from "./CardModal";
 
 const KEYBOARD_INSTRUCTIONS =
   "Press Space or Enter to pick this card up. Use the arrow keys to move it: up and down " +
@@ -64,6 +65,7 @@ export function BoardView({ board }: { board: Board }) {
   const [drag, setDrag] = useState<DragState | null>(null); // pointer drag preview
   const [grab, setGrab] = useState<DragState | null>(null); // keyboard pick-up preview
   const [announcement, setAnnouncement] = useState("");
+  const [openCardId, setOpenCardId] = useState<string | null>(null);
 
   // A preview is only valid for the board it started from. If another tab changes the board
   // meanwhile, the preview is ignored, so newly added cards never disappear behind it.
@@ -162,6 +164,9 @@ export function BoardView({ board }: { board: Board }) {
   function deleteCard(card: Card) {
     if (!window.confirm(`Delete "${card.title}"?`)) return;
     dispatch({ type: "card/delete", boardId, cardId: card.id });
+  }
+  function saveCardDetails(cardId: string, changes: CardChanges) {
+    dispatch({ type: "card/update", boardId, cardId, changes, now: new Date().toISOString() });
   }
 
   // ---------- pointer drag and drop ----------
@@ -310,6 +315,9 @@ export function BoardView({ board }: { board: Board }) {
       }))
     : board.columns;
   const draggedCard = activeDrag ? cardsById.get(activeDrag.cardId) : undefined;
+    // The dialog reads the saved board, never a drag preview. If the card is deleted elsewhere,
+  // it disappears from the board and the dialog closes with it.
+  const openCard = openCardId === null ? undefined : cardsById.get(openCardId);
 
   return (
     <>
@@ -347,6 +355,7 @@ export function BoardView({ board }: { board: Board }) {
               onDeleteColumn={deleteColumn}
               onAddCard={addCard}
               onRenameCard={renameCard}
+              onOpenCard={(card) => setOpenCardId(card.id)}
               onDeleteCard={deleteCard}
               onHandleKeyDown={handleHandleKeyDown}
               onHandleBlur={handleHandleBlur}
@@ -364,6 +373,14 @@ export function BoardView({ board }: { board: Board }) {
         </div>
         <DragOverlay>{draggedCard ? <CardPreview card={draggedCard} /> : null}</DragOverlay>
       </DndContext>
+      {openCard && (
+        <CardModal
+          key={openCard.id}
+          card={openCard}
+          onSave={(changes) => saveCardDetails(openCard.id, changes)}
+          onClose={() => setOpenCardId(null)}
+        />
+      )}
     </>
   );
 }

@@ -98,3 +98,42 @@ describe("createStore", () => {
     expect(store.getSnapshot()).toBe(store.getSnapshot());
   });
 });
+// Readable but full: reads work, writes are refused.
+const full = {
+  getItem: () => null,
+  setItem() {
+    throw new Error("quota exceeded");
+  },
+} as unknown as Storage;
+
+describe("createStore seeding", () => {
+  const seed = () => makeData([makeBoard("s1", [], "Sample")]);
+  const names = (store: ReturnType<typeof createStore>) =>
+    store.getSnapshot().data.boards.map((b) => b.name);
+
+  it("seeds and saves on the first visit", () => {
+    const store = createStore(undefined, { seed });
+    expect(names(store)).toEqual(["Sample"]);
+    expect(loadData().data.boards.map((b) => b.name)).toEqual(["Sample"]);
+  });
+
+  it("doesn't seed when data already exists", () => {
+    saveData(makeData([makeBoard("b9", [], "Mine")]));
+    expect(names(createStore(undefined, { seed }))).toEqual(["Mine"]);
+  });
+
+  it("doesn't bring the sample back after everything was deleted", () => {
+    createStore(undefined, { seed }).dispatch({ type: "data/replace", data: makeData([]) });
+    expect(createStore(undefined, { seed }).getSnapshot().data.boards).toEqual([]);
+  });
+
+  it("doesn't seed when storage is blocked", () => {
+    expect(createStore(unreadable, { seed }).getSnapshot().data.boards).toEqual([]);
+  });
+
+  it("shows the sample but flags the failure when it can't be saved", () => {
+    const snapshot = createStore(full, { seed }).getSnapshot();
+    expect(snapshot.data.boards).toHaveLength(1);
+    expect(snapshot.saveFailed).toBe(true);
+  });
+});

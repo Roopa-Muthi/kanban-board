@@ -91,3 +91,24 @@ describe("BoardsPage", () => {
     expect(screen.getByText("1 column · 1 card")).toBeInTheDocument();
   });
 });
+describe("BoardsPage first visit and data tools", () => {
+  it("shows the sample boards on the very first visit", () => {
+    render(
+      <StoreProvider>
+        <MemoryRouter>
+          <BoardsPage />
+        </MemoryRouter>
+      </StoreProvider>,
+    );
+    expect(screen.getByRole("link", { name: "Product launch" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Weekend project" })).toBeInTheDocument();
+  });
+
+  it("offers backup, import, sample and erase tools", () => {
+    renderPage();
+    expect(screen.getByRole("button", { name: "Export backup" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/import from file/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add sample boards" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Erase all data" })).toBeInTheDocument();
+  });
+});

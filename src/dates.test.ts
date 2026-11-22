@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDay, isOverdue, parseDay } from "./dates";
-
+import { formatDay, isOverdue, parseDay, toDayString } from "./dates";
 describe("parseDay", () => {
   it("parses a valid date as local midnight", () => {
     const date = parseDay("2026-03-09");
@@ -43,5 +42,16 @@ describe("formatDay", () => {
     expect(text).toContain("2026");
     expect(text).toContain("15");
     expect(formatDay("garbage")).toBeNull();
+  });
+});
+describe("toDayString", () => {
+  it("formats with zero padding, using the local day", () => {
+    expect(toDayString(new Date(2026, 0, 5))).toBe("2026-01-05");
+    expect(toDayString(new Date(2026, 10, 22, 23, 59))).toBe("2026-11-22");
+  });
+
+  it("round-trips through parseDay", () => {
+    const date = new Date(2027, 1, 28);
+    expect(parseDay(toDayString(date))?.getTime()).toBe(date.getTime());
   });
 });

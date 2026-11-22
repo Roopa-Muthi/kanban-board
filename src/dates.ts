@@ -29,3 +29,10 @@ export function formatDay(iso: string): string | null {
   if (!date) return null;
   return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
+// Local calendar day as "YYYY-MM-DD" (toISOString would use UTC and can show the wrong day).
+export function toDayString(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

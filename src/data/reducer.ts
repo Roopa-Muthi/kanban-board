@@ -12,6 +12,7 @@ export type Action =
   | { type: "card/update"; boardId: string; cardId: string; changes: CardChanges; now: string }
   | { type: "card/delete"; boardId: string; cardId: string }
   | { type: "card/place"; boardId: string; cardId: string; columnId: string; orderedIds: string[] }
+  | { type: "boards/prepend"; boards: Board[] }
   | { type: "data/replace"; data: AppData };
 
 function mapBoard(data: AppData, boardId: string, fn: (board: Board) => Board): AppData {
@@ -78,6 +79,9 @@ export function reducer(data: AppData, action: Action): AppData {
       return mapBoard(data, action.boardId, (b) =>
         ops.placeCard(b, action.cardId, action.columnId, action.orderedIds),
       );
+    case "boards/prepend":
+      if (action.boards.length === 0) return data;
+      return { ...data, boards: [...action.boards, ...data.boards] };
     case "data/replace":
       return action.data;
   }

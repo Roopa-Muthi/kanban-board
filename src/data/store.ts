@@ -10,10 +10,22 @@ export interface Snapshot {
   saveFailed: boolean;
 }
 
+export interface StoreOptions {
+  // Called once, on the very first visit (nothing stored yet), to provide starter data.
+  seed?: () => AppData;
+}
+
 // Pass a Storage for tests; leave it out to use the browser's localStorage.
-export function createStore(storage?: Storage | null) {
+export function createStore(storage?: Storage | null, options: StoreOptions = {}) {
   const initial = loadData(storage);
-  let snapshot: Snapshot = { data: initial.data, loadStatus: initial.status, saveFailed: false };
+  let data = initial.data;
+  let saveFailed = false;
+  if (initial.status === "first-run" && options.seed) {
+    data = options.seed();
+    saveFailed = !saveData(data, storage); // saving also marks the first visit as done
+  }
+
+  let snapshot: Snapshot = { data, loadStatus: initial.status, saveFailed };
   const listeners = new Set<() => void>();
 
   function publish(next: Snapshot): void {

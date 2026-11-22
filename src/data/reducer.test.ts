@@ -189,3 +189,15 @@ describe("edge cases", () => {
     expect(reducer(sample(), { type: "data/replace", data: other })).toBe(other);
   });
 });
+describe("boards/prepend", () => {
+  it("puts the new boards first, in order", () => {
+    const added = [makeBoard("x1"), makeBoard("x2")];
+    const next = reducer(sample(), { type: "boards/prepend", boards: added });
+    expect(next.boards.map((b) => b.id)).toEqual(["x1", "x2", "b1", "b2"]);
+  });
+
+  it("returns the same object for an empty list", () => {
+    const data = sample();
+    expect(reducer(data, { type: "boards/prepend", boards: [] })).toBe(data);
+  });
+});
