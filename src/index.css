@@ -140,9 +140,7 @@ a:hover {
   text-decoration: underline;
 }
 
-.link-btn.danger {
-  color: var(--danger);
-}
+
 
 .btn-quiet {
   border-color: transparent;

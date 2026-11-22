@@ -62,7 +62,7 @@ export function BoardsPage() {
       ) : (
         <ul className="board-grid">
           {data.boards.map((board) => (
-            <li
+                        <li
               key={board.id}
               className="board-card"
               style={{ "--hue": accentHue(board.id) } as CSSProperties}
@@ -70,10 +70,10 @@ export function BoardsPage() {
               <h2 className="board-card-title">
                 <Link to={`/boards/${board.id}`}>{board.name}</Link>
               </h2>
-              <p className="board-meta">
-                {plural(board.columns.length, "column")} · {plural(countCards(board), "card")}
-              </p>
-              <div className="board-card-actions">
+              <div className="board-card-footer">
+                <p className="board-meta">
+                  {plural(board.columns.length, "column")} · {plural(countCards(board), "card")}
+                </p>
                 <button
                   type="button"
                   className="btn-quiet danger"

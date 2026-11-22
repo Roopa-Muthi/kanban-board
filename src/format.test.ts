@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accentHue, plural } from "./format";
+import { BOARD_HUES, accentHue, plural } from "./format";
 
 describe("plural", () => {
   it("uses the singular only for exactly one", () => {
@@ -14,18 +14,19 @@ describe("accentHue", () => {
     expect(accentHue("3f2a9b77-1c4d")).toBe(accentHue("3f2a9b77-1c4d"));
   });
 
-  it("stays within 0-359, even for empty or very long ids", () => {
+  it("always returns one of the palette hues, even for empty or very long ids", () => {
     const ids = ["", "a", "x".repeat(5000), ...Array.from({ length: 200 }, (_, i) => `board-${i}`)];
     for (const id of ids) {
-      const hue = accentHue(id);
-      expect(hue).toBeGreaterThanOrEqual(0);
-      expect(hue).toBeLessThan(360);
-      expect(Number.isInteger(hue)).toBe(true);
+      expect(BOARD_HUES).toContain(accentHue(id));
     }
   });
 
-  it("gives different boards a spread of colours", () => {
+  it("spreads boards across the palette", () => {
     const hues = new Set(Array.from({ length: 100 }, (_, i) => accentHue(`board-${i}`)));
-    expect(hues.size).toBeGreaterThan(20);
+    expect(hues.size).toBeGreaterThanOrEqual(5);
+  });
+
+  it("avoids reds and pinks, which read as errors", () => {
+    expect(BOARD_HUES.every((hue) => hue >= 20 && hue <= 300)).toBe(true);
   });
 });

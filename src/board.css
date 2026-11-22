@@ -40,7 +40,7 @@
 
 /* ---------- columns ---------- */
 .column {
-  flex: 0 0 290px;
+  flex: 0 0 272px;
   padding: 8px;
   background: var(--surface-sunken);
   border-radius: var(--radius);
@@ -72,10 +72,11 @@
   border-radius: 999px;
 }
 
+/* A dashed outline marks this as a placeholder, not a column. */
 .add-column {
-  flex: 0 0 290px;
+  flex: 0 0 272px;
   padding: 8px;
-  background: rgba(9, 30, 66, 0.06);
+  border: 2px dashed var(--border-strong);
   border-radius: var(--radius);
 }
 
@@ -94,6 +95,11 @@
   background: var(--surface);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.12s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .card.grabbed {
@@ -108,6 +114,7 @@
 }
 
 .card-row {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -173,6 +180,63 @@
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+/* ---------- quiet controls ---------- */
+/* Grey until hovered, so red is reserved for overdue dates and real warnings. */
+.card-actions .link-btn,
+.column-header .link-btn,
+.board-header .link-btn,
+.card .editable .link-btn {
+  color: var(--text-muted);
+}
+
+.card-actions .link-btn:hover,
+.column-header .link-btn:hover,
+.board-header .link-btn:hover,
+.card .editable .link-btn:hover {
+  color: var(--accent);
+}
+
+.card-actions .link-btn.danger:hover,
+.column-header .link-btn.danger:hover {
+  color: var(--danger);
+}
+
+/* On devices with a mouse, secondary controls appear on hover or keyboard focus.
+   They are only made transparent, never removed, so keyboard users can still reach them and
+   focusing one reveals it. Touch devices skip this block and always show everything. */
+@media (hover: hover) and (pointer: fine) {
+  .board-header .link-btn,
+  .column-header .link-btn {
+    opacity: 0;
+  }
+
+  .board-header:hover .link-btn,
+  .board-header:focus-within .link-btn,
+  .column-header:hover .link-btn,
+  .column-header:focus-within .link-btn {
+    opacity: 1;
+  }
+
+  /* On cards, Edit floats over the end of the title instead of taking space from it. */
+  .card .editable {
+    display: block;
+  }
+
+  .card .editable .link-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    background: var(--surface);
+    box-shadow: -12px 0 8px var(--surface);
+  }
+
+  .card:hover .editable .link-btn,
+  .card:focus-within .editable .link-btn {
+    opacity: 1;
+  }
 }
 
 /* ---------- inline forms ---------- */
