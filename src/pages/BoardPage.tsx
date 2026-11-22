@@ -16,7 +16,7 @@ export function BoardPage() {
 
   return (
     <main className="board-page">
-      <p>
+         <p className="board-back">
         <Link to="/">← All boards</Link>
       </p>
 

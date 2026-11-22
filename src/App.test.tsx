@@ -85,3 +85,13 @@ describe("App", () => {
     expect(window.location.pathname).toBe("/");
   });
 });
+  it("has a header link that returns to the boards list", async () => {
+    saveData(makeData([makeBoard("b1", [], "Roadmap")]));
+    window.history.pushState({}, "", "/boards/b1");
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("link", { name: "Kanban" }));
+
+    expect(screen.getByRole("heading", { name: "Your boards", level: 1 })).toBeInTheDocument();
+  });

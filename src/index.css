@@ -1,136 +1,266 @@
+/* ---------- design tokens ---------- */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-sunken: #ebecf0;
+  --border: #dfe1e6;
+  --border-strong: #b3bac5;
+  --text: #172b4d;
+  --text-muted: #4c5a73;
+  --accent: #0b5fff;
+  --accent-hover: #0a4fd6;
+  --accent-soft: #e6efff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --success: #006644;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgba(9, 30, 66, 0.18);
+  --shadow-md: 0 4px 12px rgba(9, 30, 66, 0.18);
+  --shadow-lg: 0 12px 32px rgba(9, 30, 66, 0.35);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+/* ---------- reset and base ---------- */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+}
+
+/* Undo the starter template's centred, bordered #root. */
+#root {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  text-align: left;
+  min-height: 100vh;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
+
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- buttons ---------- */
+/* :where() keeps these at zero specificity, so any class below overrides them cleanly. */
+:where(button),
+.file-btn {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+:where(button:not(:disabled):hover),
+.file-btn:hover {
+  background: var(--surface-sunken);
+}
+
+/* Submit buttons are the primary action: Save, Add card, Create board... */
+:where(button[type="submit"]) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+:where(button[type="submit"]:not(:disabled):hover) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+:where(button:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.file-btn {
   display: inline-flex;
+  align-items: center;
+}
+
+.file-btn:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.link-btn {
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 0.8rem;
   border-radius: 4px;
-  color: var(--text-h);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-:root {
-  font-family: system-ui, sans-serif;
-  color-scheme: light;
-  color: #172b4d;
-  background: #f4f5f7;
+.link-btn:hover {
+  background: none;
+  text-decoration: underline;
 }
 
-body {
-  margin: 0;
+.link-btn.danger {
+  color: var(--danger);
 }
+
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn-quiet:hover {
+  background: var(--surface-sunken);
+}
+
+.btn-quiet.danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.danger-btn {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.danger-btn:hover {
+  background: var(--danger-soft);
+}
+
+/* ---------- form fields ---------- */
+:where(input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  font: inherit;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 0;
+}
+
+:where(input, textarea)::placeholder {
+  color: #6b778c;
+}
+
+/* ---------- app shell ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
 .banner {
   margin: 0;
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 0.9rem;
 }
 
 .banner-warn {
-  background: #ffebe6;
-  color: #bf2600;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .banner-info {
-  background: #deebff;
+  background: var(--accent-soft);
   color: #0747a6;
+}
+
+.banner .link-btn {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ---------- utilities ---------- */
+.error {
+  color: var(--danger);
+}
+
+/* Visually hidden, but still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Includes the list-sliding animation dnd-kit sets inline. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AppHeader } from "./components/AppHeader";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { StorageBanner } from "./components/StorageBanner";
 import { StoreProvider } from "./data/StoreProvider";
@@ -11,6 +12,7 @@ export default function App() {
       <StoreProvider>
         <BrowserRouter>
           <StorageBanner />
+          <AppHeader />
           <Routes>
             <Route path="/" element={<BoardsPage />} />
             <Route path="/boards/:boardId" element={<BoardPage />} />
