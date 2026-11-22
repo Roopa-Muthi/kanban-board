@@ -1,8 +1,9 @@
 import { Link, useParams } from "react-router-dom";
-import { EditableText } from "../components/EditableText";
 import { BoardView } from "../components/BoardView";
+import { EditableText } from "../components/EditableText";
 import { LIMITS } from "../data/model";
 import { useDispatch, useSnapshot } from "../data/useStore";
+import { useDocumentTitle } from "../useDocumentTitle";
 import "../board.css";
 
 export function BoardPage() {
@@ -10,6 +11,8 @@ export function BoardPage() {
   const { data } = useSnapshot();
   const dispatch = useDispatch();
   const board = data.boards.find((b) => b.id === boardId);
+
+  useDocumentTitle(board ? board.name : "Board not found");
 
   return (
     <main className="board-page">

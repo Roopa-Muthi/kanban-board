@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useDocumentTitle } from "../useDocumentTitle";
 import { Link } from "react-router-dom";
 import { DataTools } from "../components/DataTools";
 import { newId } from "../data/ids";
@@ -16,6 +17,7 @@ export function BoardsPage() {
   const { data } = useSnapshot();
   const dispatch = useDispatch();
   const [name, setName] = useState("");
+  useDocumentTitle();
 
   function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
