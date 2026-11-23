@@ -3,11 +3,10 @@
 A Kanban board that runs entirely in your browser: drag cards between columns with the mouse,
 touch or keyboard, edit details in a dialog, and back everything up as JSON. No account, no server.
 
-**Live demo:** <your live URL>  ·  Built with React, TypeScript (strict), Vite and dnd-kit
+**Live demo:** https://kanban-board-five.vercel.app/  ·  Built with React, TypeScript (strict), Vite and dnd-kit
 
-![Screenshot of the board](docs/screenshot.png)
+![Screenshot of the board](kanban-board\docs\SS.png)
 
-![CI](https://github.com/<your-username>/kanban-board/actions/workflows/ci.yml/badge.svg)
 
 ## Features
 
@@ -71,7 +70,3 @@ lint, tests and the build on every push.
 - Transitions during drags don't respect `prefers-reduced-motion`.
 - I've tested with the keyboard and Narrator, but haven't done a formal accessibility audit.
 
-## A full-stack version
-
-This started as a Django + PostgreSQL application with JWT authentication, a server-side move
-endpoint and an OpenAPI-generated client. That version is here: <link to your full-stack repo>.
