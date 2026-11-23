@@ -5,7 +5,8 @@ touch or keyboard, edit details in a dialog, and back everything up as JSON. No 
 
 **Live demo:** https://kanban-board-five.vercel.app/  ·  Built with React, TypeScript (strict), Vite and dnd-kit
 
-![Screenshot of the board](kanban-board\docs\SS.png)
+![Screenshot of the board] ![alt text](docs/SS.png)
+
 
 
 ## Features
